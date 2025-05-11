@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin – Quản lý người dùng</title>
+</head>
+<body>
+  <h2>👑 Trang quản trị người dùng</h2>
+
+  <h3>📋 Danh sách người dùng</h3>
+  <button onclick="loadUsers()">Tải danh sách</button>
+  <table border="1" id="userTable" style="margin-top: 10px;">
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Face Hash</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <hr>
+  <h3>✏️ Cập nhật người dùng</h3>
+  <form id="updateForm" enctype="multipart/form-data">
+    User ID: <input type="number" name="user_id" required><br>
+    Tên mới: <input type="text" name="name"><br>
+    Email mới: <input type="email" name="email"><br>
+    Ảnh mới (nếu có): <input type="file" name="image" accept="image/*"><br>
+    <button type="submit">Cập nhật</button>
+  </form>
+
+  <hr>
+  <h3>🗑️ Xoá người dùng</h3>
+  <form id="deleteForm">
+    User ID: <input type="number" name="user_id" required><br>
+    <button type="submit">Xoá</button>
+  </form>
+
+  <script>
+    async function loadUsers() {
+      const res = await fetch("/get_users");
+      const users = await res.json();
+      const tbody = document.querySelector("#userTable tbody");
+      tbody.innerHTML = "";
+      users.forEach(u => {
+        const row = `<tr>
+          <td>${u.USER_ID}</td>
+          <td>${u.FULL_NAME}</td>
+          <td>${u.EMAIL}</td>
+          <td>${u.FACE_ENCODING.slice(0, 20)}...</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    document.getElementById("updateForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const res = await fetch("/update_user", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      alert("Cập nhật: " + data.status);
+      loadUsers();
+    });
+
+    document.getElementById("deleteForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const userId = this.user_id.value;
+      const res = await fetch("/delete_user/" + userId, { method: "DELETE" });
+      const data = await res.json();
+      alert("Xoá: " + data.status);
+      loadUsers();
+    });
+  </script>
+</body>
+</html>
